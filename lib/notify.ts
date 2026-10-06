@@ -1,10 +1,10 @@
 // Emails a new-signup notice to the team inbox over SMTP (Gmail / Google Workspace
-// app password). Best-effort: a mail failure is logged and never fails the signup.
+// app password). The email is the only record of a signup, so failures throw.
 import nodemailer, { type Transporter } from "nodemailer";
 
 const NOTIFY_TO = process.env.NOTIFY_EMAIL ?? "info@okil.ai";
 
-type Signup = { email: string; name?: string; persona: string; position: number; total: number; referredBy?: string };
+type Signup = { email: string; name?: string; persona: string };
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
@@ -24,17 +24,13 @@ function getTransport() {
 
 export async function notifyNewSignup(s: Signup): Promise<void> {
   const t = getTransport();
-  if (!t) return;
-  try {
-    await t.sendMail({
+  if (!t) throw new Error("SMTP_USER / SMTP_PASS are not configured");
+  await t.sendMail({
       from: `"${(s.name ?? "New signup").replace(/[<>",]/g, "")} via okil.ai" <${process.env.SMTP_USER}>`,
       to: NOTIFY_TO,
       // Hit "Reply" in the inbox to write straight back to the person who signed up.
       replyTo: s.email,
       subject: `New waitlist signup: ${s.email}`,
-      html: `<p><b>Email:</b> ${esc(s.email)}<br><b>Name:</b> ${esc(s.name ?? "—")}<br><b>Type:</b> ${esc(s.persona)}<br><b>Referred by:</b> ${esc(s.referredBy ?? "—")}<br><b>Position:</b> ${s.position} of ${s.total}</p>`,
-    });
-  } catch (err) {
-    console.error("signup notification failed", err);
-  }
+      html: `<p><b>Email:</b> ${esc(s.email)}<br><b>Name:</b> ${esc(s.name ?? "—")}<br><b>Type:</b> ${esc(s.persona)}</p>`,
+  });
 }

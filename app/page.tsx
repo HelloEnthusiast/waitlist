@@ -1,4 +1,3 @@
-import { waitlistTotal } from "@/lib/waitlist";
 import WaitlistForm from "./WaitlistForm";
 
 // Refresh the public signup counter at most once a minute.
@@ -122,9 +121,7 @@ function Scribble() {
   );
 }
 
-export default async function Home() {
-  const total = await waitlistTotal().catch(() => 0);
-
+export default function Home() {
   return (
     <main className="min-h-screen overflow-x-hidden">
       <div className="mx-auto max-w-6xl px-5 sm:px-8">
@@ -153,11 +150,6 @@ export default async function Home() {
               Okil brings your clients, cases, hearing dates, billing and documents into one system, with AI that drafts
               agreements, reads contracts and researches Nepali law alongside your team. In Nepali or English.
             </p>
-            {total > 0 && (
-              <p className="mt-8 font-mono text-sm text-ink/60">
-                {total.toLocaleString()} {total === 1 ? "person has" : "people have"} joined the early-access list.
-              </p>
-            )}
           </div>
 
           <div className="relative lg:col-span-5 lg:pt-4">
