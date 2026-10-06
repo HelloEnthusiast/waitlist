@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { notifyNewSignup } from "@/lib/notify";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { joinWaitlist, signupSchema, statusByCode } from "@/lib/waitlist";
 
@@ -19,6 +20,9 @@ export async function POST(req: Request) {
 
   try {
     const status = await joinWaitlist(parsed.data);
+    if (!status.alreadyJoined) {
+      await notifyNewSignup({ email: parsed.data.email, name: parsed.data.name, persona: parsed.data.persona, referredBy: parsed.data.ref, position: status.position, total: status.total });
+    }
     return NextResponse.json(status, { status: status.alreadyJoined ? 200 : 201 });
   } catch (err) {
     console.error("waitlist signup failed", err);
