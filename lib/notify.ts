@@ -15,8 +15,10 @@ export async function notifyNewSignup(s: Signup): Promise<void> {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: NOTIFY_FROM,
+        from: s.name ? `${s.name.replace(/[<>",]/g, "")} via okil.ai <${NOTIFY_FROM.match(/<(.+)>/)?.[1] ?? NOTIFY_FROM}>` : NOTIFY_FROM,
         to: [NOTIFY_TO],
+        // Hit "Reply" in the inbox to write straight back to the person who signed up.
+        reply_to: s.email,
         subject: `New waitlist signup: ${s.email}`,
         html: `<p><b>Email:</b> ${esc(s.email)}<br><b>Name:</b> ${esc(s.name ?? "—")}<br><b>Type:</b> ${esc(s.persona)}<br><b>Referred by:</b> ${esc(s.referredBy ?? "—")}<br><b>Position:</b> ${s.position} of ${s.total}</p>`,
       }),
